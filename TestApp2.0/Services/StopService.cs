@@ -42,16 +42,7 @@ public class StopService
                 errors.Add($"Customer with ID {stopDto.CustomerId} does not exist.");
             }
 
-            Transportation? transportation = null;
-            int? transportationId = stopDto.TransportationId > 0 ? stopDto.TransportationId : null;
-            if (transportationId.HasValue)
-            {
-                transportation = await _context.Transportations.FindAsync(transportationId.Value);
-                if (transportation == null)
-                {
-                    errors.Add($"Transportation with Id {transportationId.Value} does not exist.");
-                }
-            }
+            
 
             if (errors.Count > 0)
             {
@@ -64,7 +55,7 @@ public class StopService
                 DistanceFromPreviousStop = stopDto.DistanceFromPreviousStop,
                 CustomerId = stopDto.CustomerId,
                 AddressId = stopDto.AddressId,
-                TransportationId = transportationId,
+                TransportationId = null,
             };
 
             _context.Stops.Add(stop);
@@ -89,7 +80,6 @@ public class StopService
 
 
             stop.Deliveries = deliveries;
-            _context.Update(stop);
             await _context.SaveChangesAsync();
 
 

@@ -25,6 +25,7 @@ public class VehicleService
 
     public async Task<ApiResponse<VehicleResponseDTO>> CreateVehicleAsync(VehicleAddDTO vehicleDto)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var licensePlate = await _context.Vehicles.AnyAsync(c => c.LicensePlate == vehicleDto.LicensePlate);
@@ -55,8 +56,11 @@ public class VehicleService
             
             if (savedVehicle == null)
             {
+                await transaction.RollbackAsync();  
+
                 return new ApiResponse<VehicleResponseDTO>(500, "Failed to retrieve saved vehicle.");
             }
+            await transaction.CommitAsync();
             
             var vehicleResponse = MapVehicleToDTO(savedVehicle);
 
@@ -65,6 +69,7 @@ public class VehicleService
 
         catch(Exception ex)
         {
+            await transaction.RollbackAsync();  
             return new ApiResponse<VehicleResponseDTO>(500,
                 $"An unexpected error occurred while adding  your vehicle, Error: {ex.Message}");
         }

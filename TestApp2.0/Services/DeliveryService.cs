@@ -29,16 +29,16 @@ namespace TestApp2._0.Services
         {
             try
             {
-                Stop? stop = null;
-                int? stopId = deliveryDto.StopId > 0 ? deliveryDto.StopId : null;
-                if (stopId.HasValue)
-                {
-                    stop = await _context.Stops.FindAsync(stopId.Value);
-                    if (stop == null)
-                    {
-                        return new ApiResponse<DeliveryResponseDTO>(404, "Stop does not exist.");
-                    }
-                }
+                // Stop? stop = null;
+                // int? stopId = deliveryDto.StopId > 0 ? deliveryDto.StopId : null;
+                // if (stopId.HasValue)
+                // {
+                //     stop = await _context.Stops.FindAsync(stopId.Value);
+                //     if (stop == null)
+                //     {
+                //         return new ApiResponse<DeliveryResponseDTO>(404, "Stop does not exist.");
+                //     }
+                // }
 
                 var deliveryItems = new List<DeliveryItem>();
 
@@ -56,10 +56,9 @@ namespace TestApp2._0.Services
 
                 var delivery = new Delivery
                 {
-                    StopId = stopId,
-                    Stop = stop,
+                    StopId = null,
+                    Stop = null,
                     DeliveryItems = deliveryItems,
-                    Status = deliveryDto.Status
                 };
 
                 _context.Deliveries.Add(delivery);

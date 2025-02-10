@@ -29,6 +29,7 @@ public class DriverService
 
     public async Task<ApiResponse<DriverResponseDTO>> AddDriverAsync(DriverAddDTO driverDto)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             if (await _context.Drivers.AnyAsync(c => c.Email.ToLower() == driverDto.Email.ToLower()))
@@ -46,6 +47,8 @@ public class DriverService
 
             _context.Drivers.Add(driver);
             await _context.SaveChangesAsync();
+            
+            await transaction.CommitAsync();
 
             var driverResponse = new DriverResponseDTO
             {
@@ -60,8 +63,10 @@ public class DriverService
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();  
             return new ApiResponse<DriverResponseDTO>(500,
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+
         }
     }
 

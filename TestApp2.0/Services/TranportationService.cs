@@ -33,6 +33,7 @@ public class TransportationService
     public async Task<ApiResponse<TransportationResponseDTO>> CreateTransportationAsync(
         TransportationCreateDTO transportationDto)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var driver = await _context.Drivers.FindAsync(transportationDto.DriverId);
@@ -50,6 +51,22 @@ public class TransportationService
             }
 
 
+            
+
+            var transportation = new Transportation
+            {
+                DriverId = transportationDto.DriverId,
+                TruckId = transportationDto.TruckId,
+                Stops = null,
+                CreatedAt = default,
+                DepartureTime = null,
+                LastStopId = null,
+                CompletedStopsCount = 0
+            };
+
+            _context.Transportations.Add(transportation);
+            await _context.SaveChangesAsync();
+            
             var Stops = new List<Stop>();
 
             foreach (var stopDto in transportationDto.Stops)
@@ -57,28 +74,21 @@ public class TransportationService
                 var stop = await _context.Stops.FindAsync(stopDto.StopId);
                 if (stop == null)
                 {
+                    await transaction.RollbackAsync();  
                     return new ApiResponse<TransportationResponseDTO>(404,
                         $"Stop with ID {stopDto.StopId} does not exist.");
                 }
 
+                stop.TransportationId = transportation.TransportationId;
+                
+                _context.Stops.Update(stop);
+
                 Stops.Add(stop);
             }
-
-            var transportation = new Transportation
-            {
-                DriverId = transportationDto.DriverId,
-                TruckId = transportationDto.TruckId,
-                Stops = Stops,
-                CreatedAt = default,
-                UpdatedAt = null,
-                DepartureTime = null,
-                ActualArrivalTime = null,
-                LastStopId = null,
-                CompletedStopsCount = 0
-            };
-
-            _context.Transportations.Add(transportation);
+            
+            transportation.Stops = Stops;
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             var transportationResponse = MapTransportationToDTO(transportation);
 
@@ -86,6 +96,7 @@ public class TransportationService
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();  
             return new ApiResponse<TransportationResponseDTO>(500,
                 $"An unexpected error occurred while processing your request. Error: {ex.Message}");
         }
@@ -105,7 +116,7 @@ public class TransportationService
             {
                 return new ApiResponse<ConfirmationResponseDTO>(404, "Transportation record not found");
             }
-
+            
             var currentStatus = transportation.TransportationStatus;
             var newStatus = statusDto.TransportationStatus;
 

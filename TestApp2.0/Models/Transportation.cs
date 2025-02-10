@@ -17,7 +17,7 @@ public class Transportation
     [ForeignKey("TruckId")] public Vehicle Truck { get; set; }
 
 
-    public ICollection<Stop> Stops { get; set; }
+    public ICollection<Stop>? Stops { get; set; }
     public TransportationStatus TransportationStatus { get; set; }
 
 
@@ -28,8 +28,7 @@ public class Transportation
     public DateTime? UpdatedAt { get; set; }
 
     [Required] public DateTime? DepartureTime { get; set; }
-
-    public DateTime? ActualArrivalTime { get; set; }
+    
 
 
     public int? LastStopId { get; set; }

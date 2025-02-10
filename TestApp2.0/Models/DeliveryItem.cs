@@ -20,7 +20,7 @@ public class DeliveryItem
     public int? CurrentDeliveryId { get; set; }
     public Delivery? CurrentDelivery { get; set; }
 
-    public decimal TotalCost { get; set; }
+    public decimal TotalCost { get; set; } 
     public int ItemWeight { get; set; }
     public int ItemVolume { get; set; }
 }

@@ -31,14 +31,13 @@ public class DeliveryItemService
 
             decimal totalCost = deliveryItemDto.OrderedCount * product.SalesUnitPrice;
 
-            int? deliveryId = deliveryItemDto.CurrentDeliveryId == 0 ? null : deliveryItemDto.CurrentDeliveryId;
 
             var deliveryItem = new DeliveryItem
             {
                 ProductId = product.ProductId,
                 Name = product.Name, SalesUnitPrice = product.SalesUnitPrice,
                 OrderedCount = deliveryItemDto.OrderedCount,
-                DeliveredCount = deliveryItemDto.DeliveredCount ?? 0, CurrentDeliveryId = deliveryId,
+                // DeliveredCount = deliveryItemDto.DeliveredCount ?? 0, CurrentDeliveryId = deliveryId,
                 TotalCost = totalCost, ItemWeight = product.Weight, ItemVolume = product.Volume
             };
 
@@ -48,6 +47,7 @@ public class DeliveryItemService
             var response = new DeliveryItemResponseDTO
             {
                 DeliveryItemId = deliveryItem.DeliveryItemId,
+                productId = deliveryItem.ProductId,
                 Name = deliveryItem.Name,
                 SalesUnitPrice = deliveryItem.SalesUnitPrice,
                 OrderedCount = deliveryItem.OrderedCount,

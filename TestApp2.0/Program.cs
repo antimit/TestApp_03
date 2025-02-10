@@ -57,7 +57,7 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
         
-       await app.MigrateDbAsync();
+       // await app.MigrateDbAsync();
 
         app.Run();
     }

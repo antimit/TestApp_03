@@ -9,6 +9,31 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
+    
+    public override int SaveChanges()
+    {
+        foreach (var entry in ChangeTracker.Entries<DeliveryItem>())
+        {
+            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+            {
+                entry.Entity.TotalCost = entry.Entity.SalesUnitPrice * entry.Entity.OrderedCount;
+            }
+        }
+        return base.SaveChanges();
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<DeliveryItem>())
+        {
+            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+            {
+                entry.Entity.TotalCost = entry.Entity.SalesUnitPrice * entry.Entity.OrderedCount;
+            }
+        }
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,10 +60,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Transportation>()
             .Property(s => s.UpdatedAt)
             .IsRequired(false);
-        modelBuilder.Entity<Transportation>()
-            .Property(s => s.ActualArrivalTime)
-            .IsRequired(false);
-
+        
 
         modelBuilder.Entity<Customer>()
             .Property(s => s.LastName)

@@ -18,7 +18,7 @@ public class StopCreateDTO
 
     public List<StopDeliveryCreate>? Deliveries { get; set; }
 
-    [Required] public int? TransportationId { get; set; }
+    // [Required] public int? TransportationId { get; set; }
 
-    [Required] public StopStatus Status { get; set; } = StopStatus.Pending;
+    // [Required] public StopStatus Status { get; set; } = StopStatus.Pending;
 }
