@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.ProductDTOs;
@@ -9,10 +10,12 @@ namespace TestApp2._0.Services;
 public class ProductService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public ProductService(ApplicationDbContext context)
+    public ProductService(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
 
@@ -25,26 +28,11 @@ public class ProductService
                 return new ApiResponse<ProductResponseDTO>(400, "Product name already exists.");
             }
 
-            var product = new Product
-            {
-                Name = productDto.Name,
-                Description = productDto.Description,
-                SalesUnitPrice = productDto.SalesUnitPrice,
-                Volume = productDto.Volume,
-                Weight = productDto.Weight
-            };
+            var product = _mapper.Map<Product>(productDto);
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            var productResponse = new ProductResponseDTO
-            {
-                ProductId = product.ProductId,
-                Name = product.Name,
-                SalesUnitPrice = product.SalesUnitPrice,
-                Description = product.Description,
-                Weight = product.Weight,
-                Volume = product.Volume
-            };
+            var productResponse = _mapper.Map<ProductResponseDTO>(product);
             return new ApiResponse<ProductResponseDTO>(200, productResponse);
         }
         catch (Exception ex)
@@ -61,15 +49,7 @@ public class ProductService
             var products = await _context.Products
                 .AsNoTracking()
                 .ToListAsync();
-            var productList = products.Select(p => new ProductResponseDTO
-            {
-                ProductId = p.ProductId,
-                Name = p.Name,
-                SalesUnitPrice = p.SalesUnitPrice,
-                Description = p.Description,
-                Weight = p.Weight,
-                Volume = p.Volume
-            }).ToList();
+            var productList = _mapper.Map<List<ProductResponseDTO>>(products);
             return new ApiResponse<List<ProductResponseDTO>>(200, productList);
         }
         catch (Exception ex)
@@ -78,4 +58,36 @@ public class ProductService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
+    
+    
+    
+    public async Task<ApiResponse<ProductResponseDTO>> UpdateProductAsync(ProductUpdateDTO productDto)
+    {
+        try
+        {
+          
+            var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == productDto.ProductId);
+        
+            if (existingProduct == null)
+            {
+                return new ApiResponse<ProductResponseDTO>(404, "Product not found.");
+            }
+
+           
+            existingProduct.SalesUnitPrice = productDto.SalesUnitPrice;
+
+           
+            await _context.SaveChangesAsync();
+            
+            var updatedProductResponse = _mapper.Map<ProductResponseDTO>(existingProduct);
+
+            return new ApiResponse<ProductResponseDTO>(200, updatedProductResponse);
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponse<ProductResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+        }
+    }
+
 }

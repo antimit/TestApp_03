@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.DeliveryDTOs;
@@ -10,6 +11,13 @@ namespace TestApp2._0.Services;
 public class StopService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
+    
+    public StopService(ApplicationDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
 
     private static readonly Dictionary<StopStatus, List<StopStatus>> AllowedStatusTransitions = new()
     {
@@ -19,10 +27,7 @@ public class StopService
         { StopStatus.Skipped, new List<StopStatus>() }
     };
 
-    public StopService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    
 
     public async Task<ApiResponse<StopResponseDTO>> CreateStopAsync(StopCreateDTO stopDto)
     {
@@ -49,14 +54,8 @@ public class StopService
                 return new ApiResponse<StopResponseDTO>(400, errors);
             }
 
-            var stop = new Stop
-            {
-                StopOrder = stopDto.StopOrder,
-                DistanceFromPreviousStop = stopDto.DistanceFromPreviousStop,
-                CustomerId = stopDto.CustomerId,
-                AddressId = stopDto.AddressId,
-                TransportationId = null,
-            };
+            var stop = _mapper.Map<Stop>(stopDto);
+            stop.TransportationId = null;
 
             _context.Stops.Add(stop);
             await _context.SaveChangesAsync();
@@ -88,7 +87,7 @@ public class StopService
                 .FirstOrDefaultAsync(s => s.StopId == stop.StopId);
 
 
-            var stopResponse = MapStopToDTO(stop);
+            var stopResponse = _mapper.Map<StopResponseDTO>(stop);
 
             return new ApiResponse<StopResponseDTO>(200, stopResponse);
         }
@@ -218,17 +217,15 @@ public class StopService
     {
         try
         {
-            // Retrieve all stops with related entities.
             var stops = await _context.Stops
                 .Include(s => s.Customer)
                 .Include(s => s.Address)
-                .Include(s => s.Deliveries) // ✅ Include Deliveries (collection)
-                .ThenInclude(d => d.DeliveryItems) // ✅ Include DeliveryItems
-                .Include(s => s.CurrentTransportation) // ✅ Include Transportation details
+                .Include(s => s.Deliveries) 
+                .ThenInclude(d => d.DeliveryItems) 
+                .Include(s => s.CurrentTransportation) 
                 .AsNoTracking()
                 .ToListAsync();
-            // Map each stop to its corresponding DTO.
-            var stopList = stops.Select(s => MapStopToDTO(s)).ToList();
+            var stopList = _mapper.Map<List<StopResponseDTO>>(stops);
 
             return new ApiResponse<List<StopResponseDTO>>(200, stopList);
         }
@@ -238,28 +235,5 @@ public class StopService
                 $"An unexpected error occurred while processing your request. Error: {ex.Message}");
         }
     }
-
-    private StopResponseDTO MapStopToDTO(Stop stop)
-    {
-        var stopDeliveries = stop.Deliveries?.Select(s => new
-            StopDeliveryResponse
-            {
-                Status = s.Status,
-                TotalValue = s.TotalValue,
-                TotalWeight = s.TotalWeight,
-                TotalVolume = s.TotalVolume
-            }).ToList() ?? new List<StopDeliveryResponse>();
-
-        return new StopResponseDTO
-        {
-            StopId = stop.StopId,
-            StopOrder = stop.StopOrder,
-            DistanceFromPreviousStop = stop.DistanceFromPreviousStop,
-            CustomerId = stop.CustomerId,
-            AddressId = stop.AddressId,
-            Deliveries = stopDeliveries,
-            TransportationId = stop.TransportationId,
-            Status = stop.Status
-        };
-    }
+   
 }

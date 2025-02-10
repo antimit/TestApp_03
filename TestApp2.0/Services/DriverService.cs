@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
@@ -10,10 +11,12 @@ namespace TestApp2._0.Services;
 public class DriverService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public DriverService(ApplicationDbContext context)
+    public DriverService(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     private static readonly Dictionary<DriverStatus, List<DriverStatus>> AllowedDriverStatusTransitions = new()
@@ -37,27 +40,14 @@ public class DriverService
                 return new ApiResponse<DriverResponseDTO>(400, "Email already in use");
             }
 
-            var driver = new Driver
-            {
-                FirstName = driverDto.FirstName,
-                LastName = driverDto.LastName,
-                Email = driverDto.Email,
-                PhoneNumber = driverDto.PhoneNumber,
-            };
+            var driver = _mapper.Map<Driver>(driverDto);
 
             _context.Drivers.Add(driver);
             await _context.SaveChangesAsync();
             
             await transaction.CommitAsync();
 
-            var driverResponse = new DriverResponseDTO
-            {
-                DriverId = driver.DriverId,
-                FirstName = driver.FirstName,
-                LastName = driver.LastName,
-                Email = driver.Email,
-                PhoneNumber = driver.PhoneNumber,
-            };
+            var driverResponse = _mapper.Map<DriverResponseDTO>(driver);
 
             return new ApiResponse<DriverResponseDTO>(200, driverResponse);
         }
@@ -79,7 +69,7 @@ public class DriverService
                 .AsNoTracking()
                 .ToListAsync();
 
-            var driversList = drivers.Select(o => MapDriverToDTO(o, o?.Transportation)).ToList();
+            var driversList = _mapper.Map<List<DriverResponseDTO>>(drivers);
 
             return new ApiResponse<List<DriverResponseDTO>>(200, driversList);
         }
@@ -103,14 +93,7 @@ public class DriverService
                 return new ApiResponse<DriverResponseDTO>(404, "Driver not found");
             }
 
-            var driverResponse = new DriverResponseDTO()
-            {
-                DriverId = driver.DriverId,
-                FirstName = driver.FirstName,
-                LastName = driver.LastName,
-                Email = driver.Email,
-                PhoneNumber = driver.PhoneNumber,
-            };
+            var driverResponse = _mapper.Map<DriverResponseDTO>(driver);
 
             return new ApiResponse<DriverResponseDTO>(200, driverResponse);
         }
@@ -161,18 +144,5 @@ public class DriverService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-
-    private DriverResponseDTO MapDriverToDTO(Driver driver, Transportation transportation)
-    {
-        return new DriverResponseDTO()
-        {
-            DriverId = driver.DriverId,
-            FirstName = driver.FirstName,
-            LastName = driver.LastName,
-            PhoneNumber = driver.PhoneNumber,
-            Email = driver.Email,
-            Status = DriverStatus.Active,
-            TransportationId = transportation?.TransportationId ?? 0
-        };
-    }
+    
 }

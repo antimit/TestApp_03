@@ -28,6 +28,20 @@ public class ProductsController : ControllerBase
 
         return Ok(response);
     }
+    
+    [HttpPut("UpdateProduct")]
+    public async Task<ActionResult<ConfirmationResponseDTO>> UpdateProduct(
+        [FromBody] ProductUpdateDTO statusDto)
+    {
+        var response = await _productService.UpdateProductAsync (statusDto);
+
+        if (response.StatusCode != 200)
+        {
+            return StatusCode(response.StatusCode, response);
+        }
+
+        return Ok(response);
+    }
 
 
     [HttpPost("AddProduct")]

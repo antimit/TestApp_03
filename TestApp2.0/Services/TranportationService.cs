@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.TransportationDTOs;
@@ -9,6 +10,13 @@ namespace TestApp2._0.Services;
 public class TransportationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
+    
+    public TransportationService(ApplicationDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
 
     private static readonly Dictionary<TransportationStatus, List<TransportationStatus>>
         AllowedTransportationTransitions = new()
@@ -25,10 +33,7 @@ public class TransportationService
             { TransportationStatus.Canceled, new List<TransportationStatus>() }
         };
 
-    public TransportationService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+   
 
     public async Task<ApiResponse<TransportationResponseDTO>> CreateTransportationAsync(
         TransportationCreateDTO transportationDto)
@@ -51,18 +56,9 @@ public class TransportationService
             }
 
 
-            
 
-            var transportation = new Transportation
-            {
-                DriverId = transportationDto.DriverId,
-                TruckId = transportationDto.TruckId,
-                Stops = null,
-                CreatedAt = default,
-                DepartureTime = null,
-                LastStopId = null,
-                CompletedStopsCount = 0
-            };
+
+            var transportation = _mapper.Map<Transportation>(transportationDto);
 
             _context.Transportations.Add(transportation);
             await _context.SaveChangesAsync();
@@ -90,7 +86,7 @@ public class TransportationService
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            var transportationResponse = MapTransportationToDTO(transportation);
+            var transportationResponse = _mapper.Map<TransportationResponseDTO>(transportation);
 
             return new ApiResponse<TransportationResponseDTO>(200, transportationResponse);
         }
@@ -175,23 +171,29 @@ public class TransportationService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-
-
-    private TransportationResponseDTO MapTransportationToDTO(Transportation transportation)
+    
+    
+    public async Task<ApiResponse<List<TransportationResponseDTO>>> GetAllTransportationsAsync()
     {
-        return new TransportationResponseDTO
+        try
         {
-            TransportationId = transportation.TransportationId,
-            DriverId = transportation.DriverId,
-            TruckId = transportation.TruckId,
-            Stops = transportation.Stops,
-            Status = transportation.TransportationStatus,
-            CreatedAt = default,
-            UpdatedAt = null,
-            DepartureTime = null,
-            ActualArrivalTime = null,
-            LastStopId = null,
-            CompletedStopsCount = 0
-        };
+            var transportations = await _context.Transportations
+                .Include(t => t.Driver)
+                .Include(t => t.Truck)
+                .Include(t => t.Stops)
+                .ThenInclude(s => s.Address)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var transportationList = _mapper.Map<List<TransportationResponseDTO>>(transportations);
+
+            return new ApiResponse<List<TransportationResponseDTO>>(200, transportationList);
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponse<List<TransportationResponseDTO>>(500,
+                $"An unexpected error occurred while processing your request. Error: {ex.Message}");
+        }
     }
+    
 }

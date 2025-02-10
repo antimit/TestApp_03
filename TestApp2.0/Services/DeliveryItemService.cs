@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.DeliveryItemsDTOs;
@@ -10,9 +11,12 @@ public class DeliveryItemService
 {
     private readonly ApplicationDbContext _context;
 
-    public DeliveryItemService(ApplicationDbContext context)
+    private readonly IMapper _mapper;
+
+    public DeliveryItemService(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<DeliveryItemResponseDTO>> CreateDeliveryItemAsync(
@@ -32,31 +36,12 @@ public class DeliveryItemService
             decimal totalCost = deliveryItemDto.OrderedCount * product.SalesUnitPrice;
 
 
-            var deliveryItem = new DeliveryItem
-            {
-                ProductId = product.ProductId,
-                Name = product.Name, SalesUnitPrice = product.SalesUnitPrice,
-                OrderedCount = deliveryItemDto.OrderedCount,
-                // DeliveredCount = deliveryItemDto.DeliveredCount ?? 0, CurrentDeliveryId = deliveryId,
-                TotalCost = totalCost, ItemWeight = product.Weight, ItemVolume = product.Volume
-            };
+            var deliveryItem = _mapper.Map<DeliveryItem>(deliveryItemDto);
 
             _context.DeliveryItems.Add(deliveryItem);
             await _context.SaveChangesAsync();
 
-            var response = new DeliveryItemResponseDTO
-            {
-                DeliveryItemId = deliveryItem.DeliveryItemId,
-                productId = deliveryItem.ProductId,
-                Name = deliveryItem.Name,
-                SalesUnitPrice = deliveryItem.SalesUnitPrice,
-                OrderedCount = deliveryItem.OrderedCount,
-                DeliveredCount = deliveryItem.DeliveredCount,
-                CurrentDeliveryId = deliveryItem.CurrentDeliveryId,
-                TotalCost = deliveryItem.TotalCost,
-                ItemWeight = deliveryItem.ItemWeight,
-                ItemVolume = deliveryItem.ItemVolume
-            };
+            var response = _mapper.Map<DeliveryItemResponseDTO>(deliveryItem);
 
             return new ApiResponse<DeliveryItemResponseDTO>(200, response);
         }
@@ -74,18 +59,7 @@ public class DeliveryItemService
                 .AsNoTracking()
                 .ToListAsync();
 
-            var responseList = deliveryItems.Select(di => new DeliveryItemResponseDTO
-            {
-                DeliveryItemId = di.DeliveryItemId,
-                Name = di.Name,
-                SalesUnitPrice = di.SalesUnitPrice,
-                OrderedCount = di.OrderedCount,
-                DeliveredCount = di.DeliveredCount,
-                CurrentDeliveryId = di.CurrentDeliveryId,
-                TotalCost = di.TotalCost,
-                ItemWeight = di.ItemWeight,
-                ItemVolume = di.ItemVolume
-            }).ToList();
+            var responseList = _mapper.Map <List<DeliveryItemResponseDTO>>(deliveryItems);
 
             return new ApiResponse<List<DeliveryItemResponseDTO>>(200, responseList);
         }
@@ -116,18 +90,7 @@ public class DeliveryItemService
                 .AsNoTracking()
                 .ToListAsync();
 
-            var responseList = deliveryItems.Select(di => new DeliveryItemResponseDTO
-            {
-                DeliveryItemId = di.DeliveryItemId,
-                Name = di.Name,
-                SalesUnitPrice = di.SalesUnitPrice,
-                OrderedCount = di.OrderedCount,
-                DeliveredCount = di.DeliveredCount,
-                CurrentDeliveryId = di.CurrentDeliveryId,
-                TotalCost = di.TotalCost,
-                ItemWeight = di.ItemWeight,
-                ItemVolume = di.ItemVolume
-            }).ToList();
+            var responseList = _mapper.Map <List<DeliveryItemResponseDTO>>(deliveryItems);
 
             return new ApiResponse<List<DeliveryItemResponseDTO>>(200, responseList);
         }

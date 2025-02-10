@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.DeliveryDTOs;
@@ -10,6 +11,13 @@ namespace TestApp2._0.Services;
 public class VehicleService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
+    
+    public VehicleService(ApplicationDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
     
     private static readonly Dictionary<VehicleStatus, List<VehicleStatus>> AllowedStatusTransitions = new()
     {
@@ -18,10 +26,7 @@ public class VehicleService
         { VehicleStatus.Reserved, new List<VehicleStatus> { VehicleStatus.Active } },
         { VehicleStatus.Retired, new List<VehicleStatus>() }     };
 
-    public VehicleService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+   
 
     public async Task<ApiResponse<VehicleResponseDTO>> CreateVehicleAsync(VehicleAddDTO vehicleDto)
     {
@@ -35,15 +40,7 @@ public class VehicleService
                 return new ApiResponse<VehicleResponseDTO>(400, "Vehicle with this LicensePlate already in use");
             }
 
-            var vehicle = new Vehicle()
-            {
-                LicensePlate = vehicleDto.LicensePlate,
-                Make = vehicleDto.Make,
-                Model = vehicleDto.Model,
-                VIN = vehicleDto.VIN,
-                Status = VehicleStatus.Active,
-                IsAvailable = true
-            };
+            var vehicle = _mapper.Map<Vehicle>(vehicleDto);
 
             _context.Vehicles.Add(vehicle);
 
@@ -61,8 +58,8 @@ public class VehicleService
                 return new ApiResponse<VehicleResponseDTO>(500, "Failed to retrieve saved vehicle.");
             }
             await transaction.CommitAsync();
-            
-            var vehicleResponse = MapVehicleToDTO(savedVehicle);
+
+            var vehicleResponse = _mapper.Map<VehicleResponseDTO>(vehicle);
 
             return new ApiResponse<VehicleResponseDTO>(200, vehicleResponse);
         }
@@ -130,7 +127,7 @@ public class VehicleService
                 .AsNoTracking()
                 .ToListAsync();
 
-            var vehiclesList = vehicles.Select(o =>MapVehicleToDTO(o)).ToList();
+            var vehiclesList = _mapper.Map<List<VehicleResponseDTO>>(vehicles);
             return new ApiResponse<List<VehicleResponseDTO>>(200, vehiclesList);
 
         }
@@ -140,25 +137,5 @@ public class VehicleService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
-    
-   
-    private VehicleResponseDTO MapVehicleToDTO(Vehicle vehicle)
-    {
-            
-            
-            return new VehicleResponseDTO
-            {
-                VehicleId = vehicle.VehicleId,
-                LicensePlate = vehicle.LicensePlate,
-                Make = vehicle.Make,
-                Model = vehicle.Model,
-                VIN = vehicle.VIN,
-                IsAvailable = true,
-                Status = VehicleStatus.Active
-            };
-    }
-    
-    
     
 }

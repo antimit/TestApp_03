@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.Models;
 using TestApp2._0.Services;
+using AutoMapper;
 
 public class Program
 {
@@ -36,6 +37,8 @@ public class Program
 
         builder.Services.AddScoped<TransportationService>();
         
+        builder.Services.AddAutoMapper(typeof(MappingProfile));
+        
         
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -57,7 +60,7 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
         
-       // await app.MigrateDbAsync();
+       await app.MigrateDbAsync();
 
         app.Run();
     }

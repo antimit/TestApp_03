@@ -15,6 +15,19 @@ public class TransportationsController : ControllerBase
     {
         _transportationService = transportationService;
     }
+    
+    [HttpGet("GetAllTransportations")]
+    public async Task<ActionResult<ApiResponse<List<TransportationResponseDTO>>>> GetAllTransportations()
+    {
+        var response = await _transportationService.GetAllTransportationsAsync();
+
+        if (response.StatusCode != 200)
+        {
+            return StatusCode(response.StatusCode, response);
+        }
+
+        return Ok(response);
+    }
 
     [HttpPost("RegisterTransportation")]
     public async Task<ActionResult<ApiResponse<TransportationResponseDTO>>> RegisterTransportation(

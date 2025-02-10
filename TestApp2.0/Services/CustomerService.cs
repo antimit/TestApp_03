@@ -3,16 +3,21 @@ using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.CustomerDTOs;
 using TestApp2._0.Models;
+using AutoMapper;
 
 namespace TestApp2._0.Services;
 
 public class CustomerService
 {
     private readonly ApplicationDbContext _context;
+    
+    private readonly IMapper _mapper;
+    
 
-    public CustomerService(ApplicationDbContext context)
+    public CustomerService(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
 
@@ -25,7 +30,7 @@ public class CustomerService
                 .AsNoTracking()
                 .ToListAsync();
 
-            var customerList = customers.Select(o => MapCustomerToDTO(o, o?.Stop)).ToList();
+            var customerList = _mapper.Map <List<CustomerResponseDTO>>(customers);
 
             return new ApiResponse<List<CustomerResponseDTO>>(200, customerList);
         }
@@ -45,25 +50,12 @@ public class CustomerService
                 return new ApiResponse<CustomerResponseDTO>(400, "Email already in use");
             }
 
-            var customer = new Customer
-            {
-                FirstName = customerDto.FirstName,
-                LastName = customerDto.LastName,
-                Email = customerDto.Email,
-                PhoneNumber = customerDto.PhoneNumber,
-            };
+            var customer = _mapper.Map<Customer>(customerDto);
 
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            var customerResponse = new CustomerResponseDTO
-            {
-                Id = customer.CustomerId,
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                Email = customer.Email,
-                PhoneNumber = customer.PhoneNumber,
-            };
+            var customerResponse = _mapper.Map<CustomerResponseDTO>(customer);
 
             return new ApiResponse<CustomerResponseDTO>(200, customerResponse);
         }
@@ -87,14 +79,7 @@ public class CustomerService
                 return new ApiResponse<CustomerResponseDTO>(404, "Customer not found");
             }
 
-            var customerResponse = new CustomerResponseDTO()
-            {
-                Id = customer.CustomerId,
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                Email = customer.Email,
-                PhoneNumber = customer.PhoneNumber,
-            };
+            var customerResponse = _mapper.Map<CustomerResponseDTO>(customer);
 
             return new ApiResponse<CustomerResponseDTO>(200, customerResponse);
         }
@@ -165,19 +150,5 @@ public class CustomerService
             return new ApiResponse<ConfirmationResponseDTO>(500,
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
-    }
-
-
-    private CustomerResponseDTO MapCustomerToDTO(Customer customer, Stop stop)
-    {
-        return new CustomerResponseDTO
-        {
-            Id = customer.CustomerId,
-            FirstName = customer.FirstName,
-            LastName = customer.LastName,
-            Email = customer.Email,
-            PhoneNumber = customer.PhoneNumber,
-            stopOrder = stop?.StopOrder ?? "No StopOrder yet"
-        };
     }
 }

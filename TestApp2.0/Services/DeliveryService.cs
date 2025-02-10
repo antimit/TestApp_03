@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.DeliveryDTOs;
@@ -10,9 +11,12 @@ namespace TestApp2._0.Services
     {
         private readonly ApplicationDbContext _context;
 
-        public DeliveryService(ApplicationDbContext context)
+        private readonly IMapper _mapper;
+
+        public DeliveryService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         private static readonly Dictionary<DeliveryStatus, List<DeliveryStatus>> AllowedStatusTransitions = new()
@@ -29,17 +33,6 @@ namespace TestApp2._0.Services
         {
             try
             {
-                // Stop? stop = null;
-                // int? stopId = deliveryDto.StopId > 0 ? deliveryDto.StopId : null;
-                // if (stopId.HasValue)
-                // {
-                //     stop = await _context.Stops.FindAsync(stopId.Value);
-                //     if (stop == null)
-                //     {
-                //         return new ApiResponse<DeliveryResponseDTO>(404, "Stop does not exist.");
-                //     }
-                // }
-
                 var deliveryItems = new List<DeliveryItem>();
 
                 foreach (var itemDto in deliveryDto.DeliveryItems)
@@ -54,17 +47,14 @@ namespace TestApp2._0.Services
                     deliveryItems.Add(deliveryItem);
                 }
 
-                var delivery = new Delivery
-                {
-                    StopId = null,
-                    Stop = null,
-                    DeliveryItems = deliveryItems,
-                };
+                var delivery = _mapper.Map<Delivery>(deliveryDto);
+
+                delivery.DeliveryItems = deliveryItems;
 
                 _context.Deliveries.Add(delivery);
                 await _context.SaveChangesAsync();
 
-                var deliveryResponse = MapDeliveryToDTO(delivery);
+                var deliveryResponse = _mapper.Map<DeliveryResponseDTO>(delivery);
 
                 return new ApiResponse<DeliveryResponseDTO>(200, deliveryResponse);
             }
@@ -87,7 +77,7 @@ namespace TestApp2._0.Services
                     return new ApiResponse<DeliveryResponseDTO>(404, "Order not found.");
                 }
 
-                var deliveryResponse = MapDeliveryToDTO(delivery);
+                var deliveryResponse =  _mapper.Map<DeliveryResponseDTO>(delivery);
 
                 return new ApiResponse<DeliveryResponseDTO>(200, deliveryResponse);
             }
@@ -106,7 +96,7 @@ namespace TestApp2._0.Services
                 var deliveries = await _context.Deliveries
                     .Include(d => d.Stop).ThenInclude(s => s.Customer)
                     .Include(d => d.DeliveryItems).ThenInclude(di => di.Product).ToListAsync();
-                var deliveryList = deliveries.Select(o => MapDeliveryToDTO(o)).ToList();
+                var deliveryList = _mapper.Map<List<DeliveryResponseDTO>>(deliveries);
                 return new ApiResponse<List<DeliveryResponseDTO>>(200, deliveryList);
             }
             catch (Exception ex)
@@ -181,24 +171,6 @@ namespace TestApp2._0.Services
             }
         }
 
-        private DeliveryResponseDTO MapDeliveryToDTO(Delivery delivery)
-        {
-            var DeliveryItems = delivery.DeliveryItems?.Select(s => new
-                DeliveryDeliveryItemResponseDTO
-                {
-                    ProductId = s.ProductId,
-                    SalesUnitPrice = s.SalesUnitPrice,
-                    TotalCost = s.TotalCost,
-                    ItemWeight = s.ItemWeight,
-                    ItemVolume = s.ItemVolume
-                }).ToList() ?? new List<DeliveryDeliveryItemResponseDTO>();
-            return new DeliveryResponseDTO
-            {
-                DeliveryId = delivery.DeliveryId,
-                StopId = delivery.StopId,
-                Status = delivery.Status,
-                DeliveryItems = DeliveryItems
-            };
-        }
+        
     }
 }

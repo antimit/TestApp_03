@@ -125,6 +125,7 @@ public class DataSample
         return stops;
     }
 
+
     private Address CreateRandomAddress()
     {
         string[] streets = { "Main St", "Broadway", "High St", "Market St", "Sunset Blvd", "Elm St", "Oak St" };

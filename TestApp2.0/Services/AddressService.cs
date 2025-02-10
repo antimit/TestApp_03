@@ -3,45 +3,33 @@ using TestApp2._0.Data;
 using TestApp2._0.DTOs;
 using TestApp2._0.DTOs.AddressDTOs;
 using TestApp2._0.Models;
+using AutoMapper;
+
 
 namespace TestApp2._0.Services;
 
 public class AddressService
 {
     private readonly ApplicationDbContext _context;
+    
+    private readonly IMapper _mapper;
 
-    public AddressService(ApplicationDbContext context)
+    public AddressService(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task<ApiResponse<AddressResponseDTO>> AddAddressAsync(AddressAddDTO addressDto)
     {
         try
         {
-            var address = new Address
-            {
-                Street = addressDto.Street,
-                City = addressDto.City,
-                PostalCode = addressDto.PostalCode,
-                Country = addressDto.Country,
-                Latitude = addressDto.Latitude,
-                Longitude = addressDto.Longitude
-            };
+            var address = _mapper.Map<Address>(addressDto);
 
             _context.Addresses.Add(address);
             await _context.SaveChangesAsync();
 
-            var addressResponse = new AddressResponseDTO
-            {
-                AddressId = address.AddressId,
-                Street = address.Street,
-                City = address.Street,
-                PostalCode = address.PostalCode,
-                Country = address.Country,
-                Latitude = address.Latitude,
-                Longitude = address.Longitude
-            };
+            var addressResponse = _mapper.Map<AddressResponseDTO>(address);
 
             return new ApiResponse<AddressResponseDTO>(200, addressResponse);
         }
@@ -62,16 +50,7 @@ public class AddressService
                 return new ApiResponse<AddressResponseDTO>(404, "Address not found.");
             }
 
-            var addressResponse = new AddressResponseDTO
-            {
-                AddressId = address.AddressId,
-                Street = address.Street,
-                City = address.City,
-                PostalCode = address.PostalCode,
-                Country = address.Country,
-                Latitude = address.Latitude,
-                Longitude = address.Longitude
-            };
+            var addressResponse = _mapper.Map<AddressResponseDTO>(address);
             return new ApiResponse<AddressResponseDTO>(200, addressResponse);
         }
         catch (Exception ex)
