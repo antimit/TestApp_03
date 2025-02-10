@@ -15,26 +15,27 @@ public class CustomerService
         _context = context;
     }
 
-    
+
     public async Task<ApiResponse<List<CustomerResponseDTO>>> GetAllCustomersAsync()
     {
         try
         {
             var customers = await _context.Customers
-                .Include(o =>o.Stop)
+                .Include(o => o.Stop)
                 .AsNoTracking()
                 .ToListAsync();
 
-            var customerList = customers.Select(o => MapCustomerToDTO(o,o?.Stop)).ToList();
+            var customerList = customers.Select(o => MapCustomerToDTO(o, o?.Stop)).ToList();
 
             return new ApiResponse<List<CustomerResponseDTO>>(200, customerList);
         }
         catch (Exception ex)
         {
-            return new ApiResponse<List<CustomerResponseDTO>>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+            return new ApiResponse<List<CustomerResponseDTO>>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
+
     public async Task<ApiResponse<CustomerResponseDTO>> AddCustomerAsync(CustomerAddDTO customerDto)
     {
         try
@@ -54,7 +55,7 @@ public class CustomerService
 
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
-            
+
             var customerResponse = new CustomerResponseDTO
             {
                 Id = customer.CustomerId,
@@ -62,7 +63,6 @@ public class CustomerService
                 LastName = customer.LastName,
                 Email = customer.Email,
                 PhoneNumber = customer.PhoneNumber,
-                
             };
 
             return new ApiResponse<CustomerResponseDTO>(200, customerResponse);
@@ -100,12 +100,12 @@ public class CustomerService
         }
         catch (Exception ex)
         {
-            return new ApiResponse<CustomerResponseDTO>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
-        }   
+            return new ApiResponse<CustomerResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+        }
     }
-    
-    
-    
+
+
     public async Task<ApiResponse<ConfirmationResponseDTO>> UpdateCustomerAsync(CustomerUpdateDTO customerDto)
     {
         try
@@ -115,19 +115,19 @@ public class CustomerService
             {
                 return new ApiResponse<ConfirmationResponseDTO>(404, "Customer not found.");
             }
-            // Check if email is being updated to an existing one
-            if (customer.Email != customerDto.Email && await _context.Customers.AnyAsync(c => c.Email == customerDto.Email))
+
+            if (customer.Email != customerDto.Email &&
+                await _context.Customers.AnyAsync(c => c.Email == customerDto.Email))
             {
                 return new ApiResponse<ConfirmationResponseDTO>(400, "Email is already in use.");
             }
-            // Update customer properties manually
+
             customer.FirstName = customerDto.FirstName;
             customer.LastName = customerDto.LastName;
             customer.Email = customerDto.Email;
             customer.PhoneNumber = customerDto.PhoneNumber;
-            
+
             await _context.SaveChangesAsync();
-            // Prepare confirmation message
             var confirmationMessage = new ConfirmationResponseDTO
             {
                 Message = $"Customer with Id {customerDto.CustomerId} updated successfully."
@@ -136,11 +136,11 @@ public class CustomerService
         }
         catch (Exception ex)
         {
-            // Log the exception
-            return new ApiResponse<ConfirmationResponseDTO>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+            return new ApiResponse<ConfirmationResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
+
     public async Task<ApiResponse<ConfirmationResponseDTO>> DeleteCustomerAsync(int id)
     {
         try
@@ -151,10 +151,9 @@ public class CustomerService
             {
                 return new ApiResponse<ConfirmationResponseDTO>(404, "Customer not found.");
             }
-            //Soft Delete
+
             _context.Customers.Remove(customer);
             await _context.SaveChangesAsync();
-            // Prepare confirmation message
             var confirmationMessage = new ConfirmationResponseDTO
             {
                 Message = $"Customer with Id {id} deleted successfully."
@@ -163,16 +162,14 @@ public class CustomerService
         }
         catch (Exception ex)
         {
-            // Log the exception
-            return new ApiResponse<ConfirmationResponseDTO>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+            return new ApiResponse<ConfirmationResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
-    
+
+
     private CustomerResponseDTO MapCustomerToDTO(Customer customer, Stop stop)
     {
-        
-        
         return new CustomerResponseDTO
         {
             Id = customer.CustomerId,
@@ -181,10 +178,6 @@ public class CustomerService
             Email = customer.Email,
             PhoneNumber = customer.PhoneNumber,
             stopOrder = stop?.StopOrder ?? "No StopOrder yet"
-            
         };
     }
-    
-    
-    
 }

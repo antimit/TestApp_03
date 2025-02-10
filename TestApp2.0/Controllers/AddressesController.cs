@@ -7,17 +7,15 @@ namespace TestApp2._0.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AddressesController :ControllerBase
+public class AddressesController : ControllerBase
 {
-    
     private readonly AddressService _addressService;
 
-    // Injecting the services
     public AddressesController(AddressService addressService)
     {
         _addressService = addressService;
     }
-    // Registers a new customer.
+
     [HttpPost("RegisterAddress")]
     public async Task<ActionResult<ApiResponse<AddressResponseDTO>>> RegisterAddress(
         [FromBody] AddressAddDTO addressDto)
@@ -30,10 +28,9 @@ public class AddressesController :ControllerBase
 
         return Ok(response);
     }
-    
-    
+
+
     [HttpGet("GetAddressById/{id}")]
-    
     public async Task<ActionResult<ApiResponse<AddressResponseDTO>>> GetAddressById(int id)
     {
         var response = await _addressService.GetAddressByIdAsync(id);
@@ -41,10 +38,10 @@ public class AddressesController :ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
-    // Deletes a customer by ID.
+
     [HttpDelete("DeleteAddress/{id}")]
     public async Task<ActionResult<ApiResponse<ConfirmationResponseDTO>>> DeleteCustomer(int id)
     {
@@ -53,8 +50,7 @@ public class AddressesController :ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
 }
-

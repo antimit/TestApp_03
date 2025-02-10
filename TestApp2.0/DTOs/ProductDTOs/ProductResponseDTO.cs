@@ -4,7 +4,7 @@ public class ProductResponseDTO
 {
     public int ProductId { get; set; }
 
-   
+
     public string Name { get; set; }
 
     public decimal SalesUnitPrice { get; set; }

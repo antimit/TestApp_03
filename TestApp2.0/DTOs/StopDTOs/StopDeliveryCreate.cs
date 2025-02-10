@@ -6,5 +6,4 @@ public class StopDeliveryCreate
 {
     [Required(ErrorMessage = "Delivery ID is required.")]
     public int DeliveryId { get; set; }
-    
 }

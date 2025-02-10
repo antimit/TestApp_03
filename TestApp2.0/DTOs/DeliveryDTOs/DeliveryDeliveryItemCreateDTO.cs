@@ -7,8 +7,4 @@ public class DeliveryDeliveryItemCreateDTO
 {
     [Required(ErrorMessage = "Delivery ID is required.")]
     public int DeliveryItemId { get; set; }
-    
-
 }
-
-

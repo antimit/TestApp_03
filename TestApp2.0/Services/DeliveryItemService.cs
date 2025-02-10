@@ -9,16 +9,17 @@ namespace TestApp2._0.Services;
 public class DeliveryItemService
 {
     private readonly ApplicationDbContext _context;
+
     public DeliveryItemService(ApplicationDbContext context)
     {
         _context = context;
     }
-    
-    public async Task<ApiResponse<DeliveryItemResponseDTO>> CreateDeliveryItemAsync(DeliveryItemCreateDTO deliveryItemDto)
+
+    public async Task<ApiResponse<DeliveryItemResponseDTO>> CreateDeliveryItemAsync(
+        DeliveryItemCreateDTO deliveryItemDto)
     {
         try
         {
-            // Fetch product details using ProductId
             var product = await _context.Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.ProductId == deliveryItemDto.productId);
@@ -28,30 +29,22 @@ public class DeliveryItemService
                 return new ApiResponse<DeliveryItemResponseDTO>(400, "Invalid Product ID.");
             }
 
-            // Calculate total cost based on OrderedCount and Product Price
             decimal totalCost = deliveryItemDto.OrderedCount * product.SalesUnitPrice;
-            
+
             int? deliveryId = deliveryItemDto.CurrentDeliveryId == 0 ? null : deliveryItemDto.CurrentDeliveryId;
 
-            // Map values to DeliveryItem
             var deliveryItem = new DeliveryItem
             {
                 ProductId = product.ProductId,
-                Name = product.Name,  // Automatically filled
-                SalesUnitPrice = product.SalesUnitPrice,  // Automatically filled
+                Name = product.Name, SalesUnitPrice = product.SalesUnitPrice,
                 OrderedCount = deliveryItemDto.OrderedCount,
-                DeliveredCount = deliveryItemDto.DeliveredCount ?? 0,  // Default 0 if not provided
-                CurrentDeliveryId = deliveryId,
-                TotalCost = totalCost,  // Automatically calculated
-                ItemWeight = product.Weight,  // Automatically filled
-                ItemVolume = product.Volume   // Automatically filled
+                DeliveredCount = deliveryItemDto.DeliveredCount ?? 0, CurrentDeliveryId = deliveryId,
+                TotalCost = totalCost, ItemWeight = product.Weight, ItemVolume = product.Volume
             };
 
-            // Add to the database
             _context.DeliveryItems.Add(deliveryItem);
             await _context.SaveChangesAsync();
 
-            // Create response DTO
             var response = new DeliveryItemResponseDTO
             {
                 DeliveryItemId = deliveryItem.DeliveryItemId,
@@ -72,7 +65,7 @@ public class DeliveryItemService
             return new ApiResponse<DeliveryItemResponseDTO>(500, $"Error: {ex.Message}");
         }
     }
-    
+
     public async Task<ApiResponse<List<DeliveryItemResponseDTO>>> GetAllDeliveryItemsAsync()
     {
         try
@@ -101,20 +94,19 @@ public class DeliveryItemService
             return new ApiResponse<List<DeliveryItemResponseDTO>>(500, $"Error: {ex.Message}");
         }
     }
-    
-    public async Task<ApiResponse<List<DeliveryItemResponseDTO>>> GetFilteredDeliveryItemsAsync(decimal? maxsalesUnitPrice, int? minItemWeight)
+
+    public async Task<ApiResponse<List<DeliveryItemResponseDTO>>> GetFilteredDeliveryItemsAsync(
+        decimal? maxsalesUnitPrice, int? minItemWeight)
     {
         try
         {
             var query = _context.DeliveryItems.AsQueryable();
 
-            // Filter by SalesUnitPrice if provided
             if (maxsalesUnitPrice.HasValue)
             {
                 query = query.Where(di => di.SalesUnitPrice <= maxsalesUnitPrice.Value);
             }
 
-            // Filter by ItemWeight (greater than minItemWeight)
             if (minItemWeight.HasValue)
             {
                 query = query.Where(di => di.ItemWeight > minItemWeight.Value);
@@ -145,8 +137,29 @@ public class DeliveryItemService
         }
     }
 
-    
-    
-    
 
+    public async Task<ApiResponse<ConfirmationResponseDTO>> DeleteDeliveryItemAsync(int deliveryItemId)
+    {
+        try
+        {
+            var deliveryItem = await _context.DeliveryItems.FindAsync(deliveryItemId);
+            if (deliveryItem == null)
+            {
+                return new ApiResponse<ConfirmationResponseDTO>(404, "DeliveryItem not found.");
+            }
+
+            _context.DeliveryItems.Remove(deliveryItem);
+            await _context.SaveChangesAsync();
+            var confirmation = new ConfirmationResponseDTO
+            {
+                Message = $"DeliveryItem with Id {deliveryItem.DeliveryItemId} deleted successfully."
+            };
+            return new ApiResponse<ConfirmationResponseDTO>(200, confirmation);
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponse<ConfirmationResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+        }
+    }
 }

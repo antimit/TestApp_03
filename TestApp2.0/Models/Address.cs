@@ -4,9 +4,8 @@ namespace TestApp2._0.Models;
 
 public class Address
 {
-    
     public int AddressId { get; set; }
-    
+
     [Required(ErrorMessage = "Street is required.")]
     [StringLength(100)]
     public string Street { get; set; }
@@ -14,7 +13,7 @@ public class Address
     [Required(ErrorMessage = "City is required.")]
     [StringLength(50)]
     public string City { get; set; }
-    
+
     [Required(ErrorMessage = "Postal Code is required.")]
     [StringLength(20)]
     public string PostalCode { get; set; }
@@ -23,7 +22,6 @@ public class Address
     [StringLength(50)]
     public string Country { get; set; }
 
-    public double? Latitude { get; set; }  // GPS Tracking
-    public double? Longitude { get; set; } // GPS Tracking
-    
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
 }

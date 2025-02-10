@@ -7,7 +7,7 @@ public class DeliveryStatusUpdateDTO
 {
     [Required(ErrorMessage = "DeliveryId is Required")]
     public int DeliveryId { get; set; }
-    
+
     [Required]
     [EnumDataType(typeof(DeliveryStatus), ErrorMessage = "Invalid Delivery Status.")]
     public DeliveryStatus DeliveryStatus { get; set; }

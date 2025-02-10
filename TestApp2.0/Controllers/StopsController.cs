@@ -7,16 +7,16 @@ namespace TestApp2._0.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class StopsController :ControllerBase
+public class StopsController : ControllerBase
 {
     private readonly StopService _stopService;
-    
+
     public StopsController(StopService stopService)
     {
         _stopService = stopService;
     }
-    
-    
+
+
     [HttpPost("RegisterStop")]
     public async Task<ActionResult<ApiResponse<StopResponseDTO>>> RegisterStops(
         [FromBody] StopCreateDTO stopDto)
@@ -29,8 +29,8 @@ public class StopsController :ControllerBase
 
         return Ok(response);
     }
-    
-    
+
+
     [HttpPut("UpdateStopStatus")]
     public async Task<ActionResult<ConfirmationResponseDTO>> UpdateVehicleStatus(
         [FromBody] StopStatusUpdateDTO statusDto)
@@ -44,7 +44,7 @@ public class StopsController :ControllerBase
 
         return Ok(response);
     }
-    
+
     [HttpGet("GetAllStops")]
     public async Task<ActionResult<ApiResponse<List<StopResponseDTO>>>> GetAllVehicles()
     {

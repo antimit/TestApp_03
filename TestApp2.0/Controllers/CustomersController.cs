@@ -11,13 +11,11 @@ public class CustomersController : ControllerBase
 {
     private readonly CustomerService _customerService;
 
-    // Injecting the services
     public CustomersController(CustomerService customerService)
     {
         _customerService = customerService;
     }
 
-    // Registers a new customer.
     [HttpPost("RegisterCustomer")]
     public async Task<ActionResult<ApiResponse<CustomerResponseDTO>>> RegisterCustomer(
         [FromBody] CustomerAddDTO customerDto)
@@ -30,9 +28,8 @@ public class CustomersController : ControllerBase
 
         return Ok(response);
     }
-    
+
     [HttpGet("GetAllCustomers")]
-    
     public async Task<ActionResult<ApiResponse<CustomerResponseDTO>>> GetAllCustomers()
     {
         var response = await _customerService.GetAllCustomersAsync();
@@ -40,11 +37,11 @@ public class CustomersController : ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
+
     [HttpGet("GetCustomerById/{id}")]
-    
     public async Task<ActionResult<ApiResponse<CustomerResponseDTO>>> GetCustomerById(int id)
     {
         var response = await _customerService.GetCustomerByIdAsync(id);
@@ -52,22 +49,24 @@ public class CustomersController : ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
-    
+
+
     [HttpPut("UpdateCustomer")]
-    public async Task<ActionResult<ApiResponse<ConfirmationResponseDTO>>> UpdateCustomer([FromBody] CustomerUpdateDTO customerDto)
+    public async Task<ActionResult<ApiResponse<ConfirmationResponseDTO>>> UpdateCustomer(
+        [FromBody] CustomerUpdateDTO customerDto)
     {
         var response = await _customerService.UpdateCustomerAsync(customerDto);
         if (response.StatusCode != 200)
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
-    // Deletes a customer by ID.
+
     [HttpDelete("DeleteCustomer/{id}")]
     public async Task<ActionResult<ApiResponse<ConfirmationResponseDTO>>> DeleteCustomer(int id)
     {
@@ -76,11 +75,7 @@ public class CustomersController : ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-
 }
-    
-    
-    
-    

@@ -12,7 +12,6 @@ public class VehiclesController : ControllerBase
 {
     private readonly VehicleService _vehicleService;
 
-    // Injecting the services
     public VehiclesController(VehicleService vehicleService)
     {
         _vehicleService = vehicleService;
@@ -30,8 +29,7 @@ public class VehiclesController : ControllerBase
 
         return Ok(response);
     }
-    
-    // Registers a new vehicle.
+
     [HttpPost("RegisterVehicle")]
     public async Task<ActionResult<ApiResponse<VehicleResponseDTO>>> RegisterVehicle(
         [FromBody] VehicleAddDTO vehicleDto)
@@ -44,7 +42,7 @@ public class VehiclesController : ControllerBase
 
         return Ok(response);
     }
-    
+
     [HttpPut("UpdateVehicleStatus")]
     public async Task<ActionResult<ConfirmationResponseDTO>> UpdateVehicleStatus(
         [FromBody] VehicleStatusUpdateDTO statusDto)
@@ -58,7 +56,4 @@ public class VehiclesController : ControllerBase
 
         return Ok(response);
     }
-    
-    
-    
 }

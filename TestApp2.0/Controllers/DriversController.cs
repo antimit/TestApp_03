@@ -5,14 +5,13 @@ using TestApp2._0.Services;
 
 namespace TestApp2._0.Controllers;
 
-
 [ApiController]
 [Route("api/[controller]")]
-public class DriversController: ControllerBase
+public class DriversController : ControllerBase
 {
     private readonly DriverService _driverService;
 
-    
+
     public DriversController(DriverService driverService)
     {
         _driverService = driverService;
@@ -27,11 +26,11 @@ public class DriversController: ControllerBase
         {
             return StatusCode(response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
+
     [HttpGet("GetDriverById/{id}")]
-    
     public async Task<ActionResult<ApiResponse<DriverResponseDTO>>> GetCustomerById(int id)
     {
         var response = await _driverService.GetDriverByIdAsync(id);
@@ -39,10 +38,11 @@ public class DriversController: ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
-    
+
+
     [HttpPost("RegisterDriver")]
     public async Task<ActionResult<ApiResponse<DriverResponseDTO>>> RegisterDriver(
         [FromBody] DriverAddDTO driverDto)
@@ -52,7 +52,7 @@ public class DriversController: ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
-    
+
         return Ok(response);
     }
 

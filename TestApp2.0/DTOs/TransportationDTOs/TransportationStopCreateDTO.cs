@@ -6,6 +6,4 @@ public class TransportationStopCreateDTO
 {
     [Required(ErrorMessage = "Stop ID is required.")]
     public int StopId { get; set; }
-    
-   
 }

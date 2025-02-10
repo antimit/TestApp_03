@@ -15,14 +15,18 @@ public class DriverService
     {
         _context = context;
     }
+
     private static readonly Dictionary<DriverStatus, List<DriverStatus>> AllowedDriverStatusTransitions = new()
     {
-        { DriverStatus.Active, new List<DriverStatus> { DriverStatus.OnLeave, DriverStatus.Suspended, DriverStatus.Retired } },
+        {
+            DriverStatus.Active,
+            new List<DriverStatus> { DriverStatus.OnLeave, DriverStatus.Suspended, DriverStatus.Retired }
+        },
         { DriverStatus.OnLeave, new List<DriverStatus> { DriverStatus.Active, DriverStatus.Retired } },
         { DriverStatus.Suspended, new List<DriverStatus> { DriverStatus.Active, DriverStatus.Retired } },
-        { DriverStatus.Retired, new List<DriverStatus>() } // Terminal state
+        { DriverStatus.Retired, new List<DriverStatus>() }
     };
-    
+
     public async Task<ApiResponse<DriverResponseDTO>> AddDriverAsync(DriverAddDTO driverDto)
     {
         try
@@ -42,7 +46,7 @@ public class DriverService
 
             _context.Drivers.Add(driver);
             await _context.SaveChangesAsync();
-            
+
             var driverResponse = new DriverResponseDTO
             {
                 DriverId = driver.DriverId,
@@ -50,7 +54,6 @@ public class DriverService
                 LastName = driver.LastName,
                 Email = driver.Email,
                 PhoneNumber = driver.PhoneNumber,
-                
             };
 
             return new ApiResponse<DriverResponseDTO>(200, driverResponse);
@@ -61,26 +64,28 @@ public class DriverService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
+
     public async Task<ApiResponse<List<DriverResponseDTO>>> GetAllDriversAsync()
     {
         try
         {
             var drivers = await _context.Drivers
-                .Include(o =>o.Transportation)
+                .Include(o => o.Transportation)
                 .AsNoTracking()
                 .ToListAsync();
 
-            var driversList = drivers.Select(o => MapDriverToDTO(o,o?.Transportation)).ToList();
+            var driversList = drivers.Select(o => MapDriverToDTO(o, o?.Transportation)).ToList();
 
             return new ApiResponse<List<DriverResponseDTO>>(200, driversList);
         }
         catch (Exception ex)
         {
-            return new ApiResponse<List<DriverResponseDTO>>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+            return new ApiResponse<List<DriverResponseDTO>>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
-    
+
+
     public async Task<ApiResponse<DriverResponseDTO>> GetDriverByIdAsync(int id)
     {
         try
@@ -106,11 +111,12 @@ public class DriverService
         }
         catch (Exception ex)
         {
-            return new ApiResponse<DriverResponseDTO>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
-        }   
+            return new ApiResponse<DriverResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+        }
     }
-    
-    
+
+
     public async Task<ApiResponse<ConfirmationResponseDTO>> UpdateDriverStatusAsync(DriverUpdateStatusDTO statusDto)
     {
         try
@@ -122,7 +128,7 @@ public class DriverService
             }
 
             var currentStatus = driver.Status;
-            var newStatus = statusDto.Status;
+            var newStatus = statusDto.DriverStatus;
             if (!AllowedDriverStatusTransitions.TryGetValue(currentStatus, out var allowedStatuses))
             {
                 return new ApiResponse<ConfirmationResponseDTO>(500, "Current driver status is invalid");
@@ -150,7 +156,7 @@ public class DriverService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
+
     private DriverResponseDTO MapDriverToDTO(Driver driver, Transportation transportation)
     {
         return new DriverResponseDTO()
@@ -162,7 +168,6 @@ public class DriverService
             Email = driver.Email,
             Status = DriverStatus.Active,
             TransportationId = transportation?.TransportationId ?? 0
-            
         };
     }
 }

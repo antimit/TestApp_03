@@ -7,7 +7,7 @@ public class DataSample
 {
     private static Random Random = new Random();
     private readonly ApplicationDbContext _context;
-    
+
 
     private Dictionary<string, decimal> materials = new Dictionary<string, decimal>()
     {
@@ -17,7 +17,7 @@ public class DataSample
         { "PU Keg 50l", 2468.50m },
         { "GA KEG 30l", 1120m }
     };
-    
+
     string[] firstNames = { "John", "Jane", "Michael", "Sarah", "Chris", "Emma", "Daniel", "Olivia" };
     string[] lastNames = { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis" };
 
@@ -29,20 +29,18 @@ public class DataSample
 
     public void SeedDatabase()
     {
-                _context.Transportations.RemoveRange(_context.Transportations);
+        _context.Transportations.RemoveRange(_context.Transportations);
         _context.SaveChanges();
 
         var shipment = CreateRandomShipment();
         _context.Transportations.Add(shipment);
         _context.SaveChanges();
-        
-        
+
 
         var stops = CreateStops(shipment);
         _context.Stops.AddRange(stops);
         _context.SaveChanges();
-
-                            }
+    }
 
     private Transportation CreateRandomShipment()
     {
@@ -51,84 +49,81 @@ public class DataSample
             Truck = new Vehicle()
             {
                 LicensePlate = "PLZEN001",
-                Make = "Scania", // 🔥 Ensure 'Make' is set
-                Model = "R450",  // (If 'Model' is also required, set it here)
-                VIN = "5N3AA08D68N901917",      // (If 'Year' is required, set it too)
+                Make = "Scania", Model = "R450", VIN = "5N3AA08D68N901917", Status = VehicleStatus.Active,
                 IsAvailable = true
             },
             Driver = new Driver
             {
-                FirstName = firstNames[Random.Next(firstNames.Length)] + " " + Guid.NewGuid().ToString().Substring(0, 4),
+                FirstName =
+                    firstNames[Random.Next(firstNames.Length)] + " " + Guid.NewGuid().ToString().Substring(0, 4),
                 LastName = lastNames[Random.Next(lastNames.Length)],
                 Email = "user" + Guid.NewGuid().ToString().Substring(0, 8) + "@example.com",
                 PhoneNumber = "+420" + Random.Next(100000000, 999999999).ToString(),
-                Transportation = null
-            }
+                Transportation = null,
+                Status = DriverStatus.Active
+            },
+            TransportationStatus = TransportationStatus.Pending
         };
         return transportation;
     }
 
 
-     private List<Stop> CreateStops(Transportation transportation)
-        {
-            List<Stop> stops = new();
-            int count = Random.Next(3, 30);
-            int order = 1;
+    private List<Stop> CreateStops(Transportation transportation)
+    {
+        List<Stop> stops = new();
+        int count = Random.Next(3, 30);
+        int order = 1;
 
-            // First stop (Depot)
-            stops.Add(new Stop
+        stops.Add(new Stop
+        {
+            StopOrder = Guid.NewGuid().ToString(),
+            DistanceFromPreviousStop = Random.Next(100, 500),
+            Customer = CreateDepot(),
+            Address = CreateRandomAddress(),
+            Deliveries = new List<Delivery>(),
+            CurrentTransportation = transportation,
+            TransportationId = transportation.TransportationId,
+            Status = StopStatus.Pending
+        });
+
+        for (; order < count; order++)
+        {
+            var customer = CreateCustomer();
+
+            var stop = new Stop
             {
                 StopOrder = Guid.NewGuid().ToString(),
-                DistanceFromPreviousStop = Random.Next(100, 500),
-                Customer = CreateDepot(),
-                Address = CreateRandomAddress(),
-                Deliveries = new List<Delivery>(),
+                DistanceFromPreviousStop = (Random.NextDouble() + 10) * 100,
                 CurrentTransportation = transportation,
                 TransportationId = transportation.TransportationId,
-                Status = StopStatus.Pending
-            });
+                Customer = customer,
+                CustomerId = customer.CustomerId,
+                Address = CreateRandomAddress(),
+                Deliveries = new List<Delivery>()
+            };
 
-            // Intermediate stops
-            for (; order < count; order++)
+
+            int deliveryCount = Random.Next(1, 4);
+            for (int i = 0; i < deliveryCount; i++)
             {
-                var customer = CreateCustomer();
-
-                var stop = new Stop
-                {
-                    StopOrder = Guid.NewGuid().ToString(),
-                    DistanceFromPreviousStop = (Random.NextDouble() + 10) * 100,
-                    CurrentTransportation = transportation,
-                    TransportationId = transportation.TransportationId,
-                    Customer = customer,
-                    CustomerId = customer.CustomerId,
-                    Address = CreateRandomAddress(),
-                    Deliveries = new List<Delivery>()
-                };
-
-                // customer.stopId = stop.StopId;
-
-                int deliveryCount = Random.Next(1, 4);
-                for (int i = 0; i < deliveryCount; i++)
-                {
-                    var delivery = CreateDelivery(stop);
-                    stop.Deliveries.Add(delivery);
-                }
-
-                stops.Add(stop);
+                var delivery = CreateDelivery(stop);
+                stop.Deliveries.Add(delivery);
             }
 
-            // Last stop (Depot)
-            stops.Add(new Stop
-            {
-                StopOrder = Guid.NewGuid().ToString(),
-                Customer = CreateDepot(),
-                Address = CreateRandomAddress(),
-                CurrentTransportation = transportation,
-                TransportationId = transportation.TransportationId
-            });
-
-            return stops;
+            stops.Add(stop);
         }
+
+        stops.Add(new Stop
+        {
+            StopOrder = Guid.NewGuid().ToString(),
+            Customer = CreateDepot(),
+            Address = CreateRandomAddress(),
+            CurrentTransportation = transportation,
+            TransportationId = transportation.TransportationId
+        });
+
+        return stops;
+    }
 
     private Address CreateRandomAddress()
     {
@@ -144,8 +139,7 @@ public class DataSample
             Country = countries[0]
         };
     }
-    
-   
+
 
     private Customer CreateDepot()
     {
@@ -163,14 +157,13 @@ public class DataSample
     {
         return new Customer()
         {
-            FirstName = firstNames[Random.Next(firstNames.Length)] + " " + Guid.NewGuid().ToString().Substring(0, 4), // Adding uniqueness
+            FirstName = firstNames[Random.Next(firstNames.Length)] + " " + Guid.NewGuid().ToString().Substring(0, 4),
             LastName = lastNames[Random.Next(lastNames.Length)],
             Email = "user" + Guid.NewGuid().ToString().Substring(0, 8) + "@example.com",
-            PhoneNumber = "+420" + Random.Next(1000000000, 1999999999).ToString(), // Generating a random US-like number
+            PhoneNumber = "+420" + Random.Next(1000000000, 1999999999).ToString(),
         };
     }
 
-    
 
     private Delivery CreateDelivery(Stop stop)
     {
@@ -181,7 +174,7 @@ public class DataSample
             DeliveryItems = new List<DeliveryItem>()
         };
 
-        for (int i = 0; i < Random.Next(1, 10000); i++)
+        for (int i = 0; i < Random.Next(1, 1000); i++)
         {
             delivery.DeliveryItems.Add(CreateDeliveryItem());
         }
@@ -189,31 +182,30 @@ public class DataSample
         return delivery;
     }
 
-        
+
     private DeliveryItem CreateDeliveryItem()
     {
-
         Product product = CreateProduct();
 
         decimal salesUnitPrice = Random.Next(10, 10000);
         int orderedCount = Random.Next(10, 1000);
-        
+
         return new DeliveryItem
         {
             ProductId = product.ProductId,
             Name = Guid.NewGuid().ToString(),
-            SalesUnitPrice = Random.Next(10,10000),
+            SalesUnitPrice = Random.Next(10, 10000),
             OrderedCount = orderedCount,
             DeliveredCount = null,
             CurrentDeliveryId = null,
             CurrentDelivery = null,
             TotalCost = salesUnitPrice * orderedCount,
-            ItemWeight = Random.Next(10,100),
-            ItemVolume = Random.Next(10,100)
+            ItemWeight = Random.Next(10, 100),
+            ItemVolume = Random.Next(10, 100)
         };
     }
-    
-    
+
+
     private Product CreateProduct()
     {
         var product = new Product
@@ -226,8 +218,7 @@ public class DataSample
         };
 
         _context.Products.Add(product);
-        _context.SaveChanges(); // ✅ Ensure the product is saved before using it
+        _context.SaveChanges();
         return product;
     }
-
 }

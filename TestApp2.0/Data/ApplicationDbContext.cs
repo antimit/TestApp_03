@@ -6,15 +6,12 @@ namespace TestApp2._0.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    // Constructor accepting DbContextOptions
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
-
         modelBuilder.Entity<Transportation>()
             .HasOne(s => s.Driver)
             .WithOne(d => d.Transportation)
@@ -43,20 +40,15 @@ public class ApplicationDbContext : DbContext
             .IsRequired(false);
 
 
-
-
         modelBuilder.Entity<Customer>()
             .Property(s => s.LastName)
             .IsRequired(false);
 
-        // modelBuilder.Entity<Customer>()
-        //     .Property(s => s.Stop)
-        //     .IsRequired(false);
 
         modelBuilder.Entity<Customer>()
             .Property(s => s.PhoneNumber)
             .IsRequired(false);
-            
+
 
         modelBuilder.Entity<Customer>()
             .Property(s => s.Email)
@@ -66,7 +58,7 @@ public class ApplicationDbContext : DbContext
             .HasIndex(d => d.SalesUnitPrice)
             .HasDatabaseName("IX_DeliveryItem_SalesUnitPrice")
             .IsUnique(false);
-        
+
         modelBuilder.Entity<DeliveryItem>()
             .HasIndex(d => d.ItemWeight)
             .HasDatabaseName("IX_DeliveryItem_ItemWeight")
@@ -80,45 +72,79 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Stop>()
             .HasOne(s => s.Customer)
-            .WithOne(d =>d.Stop)
+            .WithOne(d => d.Stop)
             .HasForeignKey<Stop>(s => s.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
-       
-        
+
+
         modelBuilder.Entity<Delivery>()
             .HasOne(s => s.Stop)
-            .WithMany(d =>d.Deliveries)
+            .WithMany(d => d.Deliveries)
             .HasForeignKey(s => s.StopId)
             .OnDelete(DeleteBehavior.Cascade);
-            
-        
-        
+
+
+        modelBuilder.Entity<Delivery>()
+            .HasMany(d => d.DeliveryItems)
+            .WithOne(di => di.CurrentDelivery)
+            .HasForeignKey(di => di.CurrentDeliveryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+        modelBuilder.Entity<DeliveryItem>()
+            .HasOne(d => d.Product)
+            .WithMany()
+            .HasForeignKey(d => d.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+        modelBuilder.Entity<Transportation>()
+            .HasOne(d => d.Driver)
+            .WithOne(s => s.Transportation)
+            .HasForeignKey<Transportation>(d => d.DriverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+        modelBuilder.Entity<Transportation>()
+            .HasOne(d => d.Truck)
+            .WithOne(s => s.Transportation)
+            .HasForeignKey<Transportation>(d => d.DriverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+        modelBuilder.Entity<Transportation>()
+            .HasMany(d => d.Stops)
+            .WithOne(s => s.CurrentTransportation)
+            .HasForeignKey(s => s.TransportationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+        modelBuilder.Entity<DeliveryItem>()
+            .HasKey(s => s.DeliveryItemId);
+        modelBuilder.Entity<DeliveryItem>()
+            .Property(s => s.DeliveryItemId)
+            .ValueGeneratedOnAdd();
 
 
         base.OnModelCreating(modelBuilder);
-
     }
 
 
-
-
-
     public DbSet<Transportation> Transportations { get; set; }
-    
+
     public DbSet<Customer> Customers { get; set; }
-    
+
     public DbSet<Vehicle> Vehicles { get; set; }
-    
-    public DbSet<Driver> Drivers{ get; set; }
-    
-    public DbSet<DeliveryItem> DeliveryItems{ get; set; }
-    
+
+    public DbSet<Driver> Drivers { get; set; }
+
+    public DbSet<DeliveryItem> DeliveryItems { get; set; }
+
     public DbSet<Product> Products { get; set; }
-    
+
     public DbSet<Delivery> Deliveries { get; set; }
-    
+
     public DbSet<Stop> Stops { get; set; }
-    
+
     public DbSet<Address> Addresses { get; set; }
-    
 }

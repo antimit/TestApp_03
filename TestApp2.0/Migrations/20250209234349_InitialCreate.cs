@@ -5,11 +5,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TestApp2._0.Migrations
 {
-    /// <inheritdoc />
-    public partial class InitialCreate : Migration
+        public partial class InitialCreate : Migration
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
+                protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
                 name: "Addresses",
@@ -105,14 +103,13 @@ namespace TestApp2._0.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DriverId = table.Column<int>(type: "int", nullable: false),
                     TruckId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    TransportationStatus = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DepartureTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ActualArrivalTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LastStopId = table.Column<int>(type: "int", nullable: true),
-                    CompletedStopsCount = table.Column<int>(type: "int", nullable: false),
-                    IsFinalized = table.Column<bool>(type: "bit", nullable: false)
+                    CompletedStopsCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -124,11 +121,11 @@ namespace TestApp2._0.Migrations
                         principalColumn: "DriverId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Transportations_Vehicles_TruckId",
-                        column: x => x.TruckId,
+                        name: "FK_Transportations_Vehicles_DriverId",
+                        column: x => x.DriverId,
                         principalTable: "Vehicles",
                         principalColumn: "VehicleId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -163,7 +160,8 @@ namespace TestApp2._0.Migrations
                         name: "FK_Stops_Transportations_TransportationId",
                         column: x => x.TransportationId,
                         principalTable: "Transportations",
-                        principalColumn: "TransportationId");
+                        principalColumn: "TransportationId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -173,8 +171,7 @@ namespace TestApp2._0.Migrations
                     DeliveryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     StopId = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    StopId1 = table.Column<int>(type: "int", nullable: true)
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -185,11 +182,6 @@ namespace TestApp2._0.Migrations
                         principalTable: "Stops",
                         principalColumn: "StopId",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Deliveries_Stops_StopId1",
-                        column: x => x.StopId1,
-                        principalTable: "Stops",
-                        principalColumn: "StopId");
                 });
 
             migrationBuilder.CreateTable(
@@ -215,13 +207,14 @@ namespace TestApp2._0.Migrations
                         name: "FK_DeliveryItems_Deliveries_CurrentDeliveryId",
                         column: x => x.CurrentDeliveryId,
                         principalTable: "Deliveries",
-                        principalColumn: "DeliveryId");
+                        principalColumn: "DeliveryId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DeliveryItems_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "ProductId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -235,11 +228,6 @@ namespace TestApp2._0.Migrations
                 name: "IX_Deliveries_StopId",
                 table: "Deliveries",
                 column: "StopId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Deliveries_StopId1",
-                table: "Deliveries",
-                column: "StopId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeliveryItem_ItemWeight",
@@ -281,15 +269,9 @@ namespace TestApp2._0.Migrations
                 table: "Transportations",
                 column: "DriverId",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Transportations_TruckId",
-                table: "Transportations",
-                column: "TruckId");
         }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
+                protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "DeliveryItems");

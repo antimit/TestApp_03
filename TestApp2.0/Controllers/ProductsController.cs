@@ -12,12 +12,11 @@ public class ProductsController : ControllerBase
 {
     private readonly ProductService _productService;
 
-    
     public ProductsController(ProductService productService)
     {
         _productService = productService;
     }
-    
+
     [HttpGet("GetAllProducts")]
     public async Task<ActionResult<ApiResponse<List<ProductResponseDTO>>>> GetAllProductsAsync()
     {
@@ -26,10 +25,11 @@ public class ProductsController : ControllerBase
         {
             return StatusCode(response.StatusCode, response);
         }
+
         return Ok(response);
     }
-    
-    
+
+
     [HttpPost("AddProduct")]
     public async Task<ActionResult<ApiResponse<ProductResponseDTO>>> RegisterProduct(
         [FromBody] ProductAddDTO productDto)
@@ -39,6 +39,7 @@ public class ProductsController : ControllerBase
         {
             return StatusCode((int)response.StatusCode, response);
         }
+
         return Ok(response);
     }
 }

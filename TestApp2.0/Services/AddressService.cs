@@ -9,17 +9,16 @@ namespace TestApp2._0.Services;
 public class AddressService
 {
     private readonly ApplicationDbContext _context;
-    
+
     public AddressService(ApplicationDbContext context)
     {
         _context = context;
     }
-    
+
     public async Task<ApiResponse<AddressResponseDTO>> AddAddressAsync(AddressAddDTO addressDto)
     {
         try
         {
-            
             var address = new Address
             {
                 Street = addressDto.Street,
@@ -32,7 +31,7 @@ public class AddressService
 
             _context.Addresses.Add(address);
             await _context.SaveChangesAsync();
-            
+
             var addressResponse = new AddressResponseDTO
             {
                 AddressId = address.AddressId,
@@ -52,7 +51,7 @@ public class AddressService
                 $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
+
     public async Task<ApiResponse<AddressResponseDTO>> GetAddressByIdAsync(int id)
     {
         try
@@ -62,7 +61,7 @@ public class AddressService
             {
                 return new ApiResponse<AddressResponseDTO>(404, "Address not found.");
             }
-            // Map to AddressResponseDTO
+
             var addressResponse = new AddressResponseDTO
             {
                 AddressId = address.AddressId,
@@ -77,12 +76,12 @@ public class AddressService
         }
         catch (Exception ex)
         {
-            // Log the exception
-            return new ApiResponse<AddressResponseDTO>(500, $"An unexpected error occurred while processing your request, Error: {ex.Message}");
+            return new ApiResponse<AddressResponseDTO>(500,
+                $"An unexpected error occurred while processing your request, Error: {ex.Message}");
         }
     }
-    
-    
+
+
     public async Task<ApiResponse<ConfirmationResponseDTO>> DeleteAddressAsync(int addressId)
     {
         try
@@ -93,9 +92,9 @@ public class AddressService
             {
                 return new ApiResponse<ConfirmationResponseDTO>(404, "Address not found.");
             }
+
             _context.Addresses.Remove(address);
             await _context.SaveChangesAsync();
-            // Prepare confirmation message
             var confirmationMessage = new ConfirmationResponseDTO
             {
                 Message = $"Address with Id {addressId} deleted successfully."
@@ -104,10 +103,8 @@ public class AddressService
         }
         catch (Exception ex)
         {
-            // Log the exception
-            return new ApiResponse<ConfirmationResponseDTO>(500, "An unexpected error occurred while processing your request.");
+            return new ApiResponse<ConfirmationResponseDTO>(500,
+                "An unexpected error occurred while processing your request.");
         }
     }
-    
-    
 }

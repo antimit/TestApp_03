@@ -16,8 +16,7 @@ public class VehicleService
         { VehicleStatus.Active, new List<VehicleStatus> { VehicleStatus.UnderMaintenance, VehicleStatus.Reserved, VehicleStatus.Retired } },
         { VehicleStatus.UnderMaintenance, new List<VehicleStatus> { VehicleStatus.Active, VehicleStatus.Retired } },
         { VehicleStatus.Reserved, new List<VehicleStatus> { VehicleStatus.Active } },
-        { VehicleStatus.Retired, new List<VehicleStatus>() } // Terminal state
-    };
+        { VehicleStatus.Retired, new List<VehicleStatus>() }     };
 
     public VehicleService(ApplicationDbContext context)
     {
@@ -51,7 +50,7 @@ public class VehicleService
             
             
             var savedVehicle = await _context.Vehicles
-                .Include(v => v.Transportations) 
+                .Include(v => v.Transportation) 
                 .FirstOrDefaultAsync(v => v.VehicleId == vehicle.VehicleId);
             
             if (savedVehicle == null)
@@ -122,7 +121,7 @@ public class VehicleService
         try
         {
             var vehicles = await _context.Vehicles
-                .Include(o => o.Transportations)
+                .Include(o => o.Transportation)
                 .AsNoTracking()
                 .ToListAsync();
 
