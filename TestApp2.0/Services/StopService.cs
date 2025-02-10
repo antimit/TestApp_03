@@ -97,85 +97,12 @@ public class StopService
                 $"An unexpected error occurred while processing your request. Error: {ex.Message}");
         }
     }
-
-    // public async Task<ApiResponse<StopResponseDTO>> CreateStopAsync(StopCreateDTO stopDto)
-    //     {
-    //         try
-    //         {
-    //             var address = await _context.Addresses.FindAsync(stopDto.AddressId);
-    //             if (address == null)
-    //             {
-    //                 return new ApiResponse<StopResponseDTO>(404, $"Address with ID {stopDto.AddressId} does not exist.");
-    //             }
-    //             
-    //             var customer = await _context.Customers.FindAsync(stopDto.CustomerId);
-    //             if (customer == null)
-    //             {
-    //                 return new ApiResponse<StopResponseDTO>(404, $"Address with ID {stopDto.CustomerId} does not exist.");
-    //             }
-    //
-    //             Transportation? transportation = null;
-    //             int? transportationId = stopDto.TransportationId > 0 ? stopDto.TransportationId : null;
-    //             if (transportationId.HasValue)
-    //             {
-    //                 transportation = await _context.Transportations.FindAsync(transportationId.Value);
-    //                 if (transportation == null)
-    //                 {
-    //                     return new ApiResponse<StopResponseDTO>(404, "Transportation does not exist.");
-    //                 }
-    //             }
-    //             
-    //             var deliveries = new List<Delivery>();
-    //
-    //             foreach (var deliveryDto in stopDto.Deliveries)
-    //             {
-    //                 // Ensure the product exists
-    //                 var delivery = await _context.Deliveries.FindAsync(deliveryDto.DeliveryId);
-    //                 if (delivery == null)
-    //                 {
-    //                     return new ApiResponse<StopResponseDTO>(404,
-    //                         $"DeliveryItem with ID {deliveryDto.DeliveryId} does not exist.");
-    //                 }
-    //
-    //                 deliveries.Add(delivery);
-    //             }
-    //             
-    //             var stop = new Stop
-    //             {
-    //                 StopOrder = stopDto.StopOrder,
-    //                 DistanceFromPreviousStop = stopDto.DistanceFromPreviousStop,
-    //                 CustomerId = stopDto.CustomerId,
-    //                 AddressId = stopDto.AddressId,
-    //                 Deliveries = deliveries,
-    //                 TransportationId = transportationId,
-    //             };
-    //
-    //             // Add and save the delivery
-    //             _context.Stops.Add(stop);
-    //             await _context.SaveChangesAsync();
-    //             
-    //             
-    //             stop = await _context.Stops
-    //                 .Include(s => s.Deliveries) 
-    //                 .FirstOrDefaultAsync(s => s.StopId == stop.StopId);
-    //
-    //             // Map the entity to a response DTO
-    //             var stopResponse = MapStopToDTO(stop);
-    //
-    //             return new ApiResponse<StopResponseDTO>(200, stopResponse);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             return new ApiResponse<StopResponseDTO>(500,
-    //                 $"An unexpected error occurred while processing your request. Error: {ex.Message}");
-    //         }
-    //     }
-
+    
     public async Task<ApiResponse<ConfirmationResponseDTO>> UpdateStopStatusAsync(StopStatusUpdateDTO statusDto)
     {
         try
         {
-            // Retrieve the order.
+            
             var stop = await _context.Stops.FirstOrDefaultAsync(o => o.StopId == statusDto.StopId);
             if (stop == null)
             {
@@ -184,7 +111,7 @@ public class StopService
 
             var currentStatus = stop.Status;
             var newStatus = statusDto.StopStatus;
-            // Validate the status transition.
+            
             if (!AllowedStatusTransitions.TryGetValue(currentStatus, out var allowedStatuses))
             {
                 return new ApiResponse<ConfirmationResponseDTO>(500, "Current stop status is invalid.");
@@ -196,10 +123,10 @@ public class StopService
                     $"Cannot change stop status from {currentStatus} to {newStatus}.");
             }
 
-            // Update the order status.
+            
             stop.Status = newStatus;
             await _context.SaveChangesAsync();
-            // Prepare a confirmation message.
+            
             var confirmation = new ConfirmationResponseDTO
             {
                 Message = $"Stop Status with Id {statusDto.StopId} updated successfully."
